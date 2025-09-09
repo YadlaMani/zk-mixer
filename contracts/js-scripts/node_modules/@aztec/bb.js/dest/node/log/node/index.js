@@ -1,0 +1,40 @@
+import { pino } from 'pino';
+const defaultOptions = {
+    name: 'bb.js',
+    useOnlyCustomLevels: false,
+    customLevels: { verbose: 25 },
+};
+const defaultLevel = parseLogLevel(process.env.LOG_LEVEL);
+// Options must be exposed so they can be provided to threads upon creation
+// This way we ensure all loggers are spawned with the same options
+export let logOptions;
+let logger;
+export function initLogger({ level = defaultLevel, useStdErr = false } = { level: defaultLevel, useStdErr: false }) {
+    if (logger) {
+        return logger;
+    }
+    logOptions = { level, useStdErr };
+    const transport = pino.transport({
+        target: 'pino/file',
+        options: { destination: useStdErr ? 2 : 1 },
+    });
+    logger = pino({ ...defaultOptions, level }, transport);
+}
+export function createDebugLogger(name) {
+    initLogger();
+    const sublogger = logger.child({
+        name,
+    });
+    return (msg) => {
+        sublogger.debug(msg);
+    };
+}
+function parseLogLevel(logLevel) {
+    if (!logLevel) {
+        return 'info';
+    }
+    const knownLogLevels = ['info', 'debug', 'warn', 'error', 'trace', 'silent', 'verbose'];
+    const [defaultLogLevel] = logLevel.split(';');
+    return knownLogLevels.indexOf(defaultLogLevel) !== -1 ? defaultLogLevel : 'info';
+}
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiaW5kZXguanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyIuLi8uLi8uLi8uLi9zcmMvbG9nL25vZGUvaW5kZXgudHMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IkFBQUEsT0FBTyxFQUFVLElBQUksRUFBRSxNQUFNLE1BQU0sQ0FBQztBQUdwQyxNQUFNLGNBQWMsR0FBRztJQUNyQixJQUFJLEVBQUUsT0FBTztJQUNiLG1CQUFtQixFQUFFLEtBQUs7SUFDMUIsWUFBWSxFQUFFLEVBQUUsT0FBTyxFQUFFLEVBQUUsRUFBRTtDQUM5QixDQUFDO0FBRUYsTUFBTSxZQUFZLEdBQUcsYUFBYSxDQUFDLE9BQU8sQ0FBQyxHQUFHLENBQUMsU0FBUyxDQUFDLENBQUM7QUFFMUQsMkVBQTJFO0FBQzNFLG1FQUFtRTtBQUNuRSxNQUFNLENBQUMsSUFBSSxVQUFrQyxDQUFDO0FBRTlDLElBQUksTUFBcUMsQ0FBQztBQUUxQyxNQUFNLFVBQVUsVUFBVSxDQUN4QixFQUFFLEtBQUssR0FBRyxZQUFZLEVBQUUsU0FBUyxHQUFHLEtBQUssS0FBaUIsRUFBRSxLQUFLLEVBQUUsWUFBWSxFQUFFLFNBQVMsRUFBRSxLQUFLLEVBQUU7SUFFbkcsSUFBSSxNQUFNLEVBQUUsQ0FBQztRQUNYLE9BQU8sTUFBTSxDQUFDO0lBQ2hCLENBQUM7SUFDRCxVQUFVLEdBQUcsRUFBRSxLQUFLLEVBQUUsU0FBUyxFQUFFLENBQUM7SUFDbEMsTUFBTSxTQUFTLEdBQUcsSUFBSSxDQUFDLFNBQVMsQ0FBQztRQUMvQixNQUFNLEVBQUUsV0FBVztRQUNuQixPQUFPLEVBQUUsRUFBRSxXQUFXLEVBQUUsU0FBUyxDQUFDLENBQUMsQ0FBQyxDQUFDLENBQUMsQ0FBQyxDQUFDLENBQUMsRUFBRTtLQUM1QyxDQUFDLENBQUM7SUFDSCxNQUFNLEdBQUcsSUFBSSxDQUFDLEVBQUUsR0FBRyxjQUFjLEVBQUUsS0FBSyxFQUFFLEVBQUUsU0FBUyxDQUFDLENBQUM7QUFDekQsQ0FBQztBQUVELE1BQU0sVUFBVSxpQkFBaUIsQ0FBQyxJQUFZO0lBQzVDLFVBQVUsRUFBRSxDQUFDO0lBRWIsTUFBTSxTQUFTLEdBQUcsTUFBTyxDQUFDLEtBQUssQ0FBQztRQUM5QixJQUFJO0tBQ0wsQ0FBQyxDQUFDO0lBQ0gsT0FBTyxDQUFDLEdBQVcsRUFBRSxFQUFFO1FBQ3JCLFNBQVMsQ0FBQyxLQUFLLENBQUMsR0FBRyxDQUFDLENBQUM7SUFDdkIsQ0FBQyxDQUFDO0FBQ0osQ0FBQztBQUVELFNBQVMsYUFBYSxDQUFDLFFBQWlCO0lBQ3RDLElBQUksQ0FBQyxRQUFRLEVBQUUsQ0FBQztRQUNkLE9BQU8sTUFBTSxDQUFDO0lBQ2hCLENBQUM7SUFFRCxNQUFNLGNBQWMsR0FBZ0IsQ0FBQyxNQUFNLEVBQUUsT0FBTyxFQUFFLE1BQU0sRUFBRSxPQUFPLEVBQUUsT0FBTyxFQUFFLFFBQVEsRUFBRSxTQUFTLENBQUMsQ0FBQztJQUNyRyxNQUFNLENBQUMsZUFBZSxDQUFDLEdBQUcsUUFBUSxDQUFDLEtBQUssQ0FBQyxHQUFHLENBQUMsQ0FBQztJQUU5QyxPQUFPLGNBQWMsQ0FBQyxPQUFPLENBQUMsZUFBNEIsQ0FBQyxLQUFLLENBQUMsQ0FBQyxDQUFDLENBQUMsQ0FBRSxlQUE2QixDQUFDLENBQUMsQ0FBQyxNQUFNLENBQUM7QUFDL0csQ0FBQyJ9
